@@ -4,7 +4,7 @@ A simple, free tool to create WhatsApp QR codes — no WhatsApp Business app, no
 
 **Live tool:** https://oswald-creator.github.io/wa-me-qr-generator/
 
-Enter a phone number, optionally add a pre-filled message, and download a QR code that opens a WhatsApp chat with that message already typed. Built as a side project to help LDS church members, missionaries, wards and branches share contact QR codes on posters, programmes and table cards.
+Enter a phone number, optionally add a pre-filled message, and download a QR code that opens a WhatsApp chat with that message already typed. Built as a side project to help members of The Church of Jesus Christ of Latter-day Saints — missionaries, wards and branches — share contact QR codes on posters, programmes and table cards.
 
 ## How it works
 
