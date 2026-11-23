@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>wa.me QR Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
+
+      :root {
+        --bg: #f6f4ee;
+        --surface: #ffffff;
+        --surface-2: #efede4;
+        --ink: #1c2420;
+        --ink-soft: #4c5a52;
+        --line: #d9d5c7;
+        --green: #0e7a5f;
+        --green-deep: #0a5c48;
+        --green-bright: #25d366;
+        --green-tint: #e2f2ea;
+        --amber: #9a6a12;
+        --amber-tint: #fbf0d3;
+        --red: #b3352b;
+        --red-tint: #fbe7e4;
+        --qr-bg: #ffffff;
+        --radius: 14px;
+        --shadow: 0 1px 2px rgba(28,36,32,.06), 0 10px 30px -18px rgba(28,36,32,.35);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121614;
+          --surface: #1b201d;
+          --surface-2: #232926;
+          --ink: #eef2ee;
+          --ink-soft: #a9b6ad;
+          --line: #39423c;
+          --green: #3ecf8e;
+          --green-deep: #7fe0b2;
+          --green-tint: #173028;
+          --amber: #e3b34e;
+          --amber-tint: #38300f;
+          --red: #f0857c;
+          --red-tint: #3d1d1a;
+          --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.7);
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: ui-sans-system, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.55;
+      }
+      .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 64px; }
+
+      /* ---------- Intro ---------- */
+      .intro { max-width: 720px; margin-bottom: 26px; }
+      .intro h1 {
+        font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+        font-weight: 600;
+        font-size: clamp(1.7rem, 4.5vw, 2.4rem);
+        line-height: 1.15;
+        margin: 0 0 10px;
+        letter-spacing: -0.01em;
+      }
+      .intro h1 .accent { color: var(--green); }
+      .intro p { margin: 0; color: var(--ink-soft); font-size: 1.02rem; }
+      .intro p strong { color: var(--ink); font-weight: 600; }
+
+      /* ---------- Layout ---------- */
+      .layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 22px; align-items: start; }
+      @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 22px;
+      }
+      .card + .card { margin-top: 22px; }
+      .card h2 {
+        font-size: 0.82rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+        color: var(--green); margin: 0 0 4px;
+        display: flex; align-items: center; gap: 10px;
+      }
+      .card h2 .step {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 24px; height: 24px; border-radius: 50%;
+        background: var(--green); color: #fff; font-size: 0.8rem; letter-spacing: 0;
+        flex: none;
+      }
+      @media (prefers-color-scheme: dark) { .card h2 .step { color: #0c1512; } }
+      .card .sub { color: var(--ink-soft); font-size: 0.92rem; margin: 0 0 16px; }
+
+      /* ---------- Form ---------- */
+      label.field-label { display: block; font-weight: 600; font-size: 0.95rem; margin: 18px 0 6px; }
+      label.field-label:first-of-type { margin-top: 6px; }
+      .hint { font-size: 0.85rem; color: var(--ink-soft); margin: 6px 0 0; }
+      .phone-row { display: grid; grid-template-columns: 225px minmax(0,1fr); gap: 10px; }
+      @media (max-width: 520px) { .phone-row { grid-template-columns: minmax(0,1fr); } }
+      input[type="text"], input[type="tel"], select, textarea {
+        width: 100%;
+        font: inherit; font-size: 1rem;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        min-height: 44px;
+      }
+      textarea { min-height: 108px; resize: vertical; line-height: 1.5; }
+      input:focus, select:focus, textarea:focus { outline: 2px solid var(--green); outline-offset: 1px; border-color: var(--green); }
+
+      .status { display: none; border-radius: 10px; padding: 10px 14px; font-size: 0.92rem; margin-top: 12px; }
+      .status.show { display: block; }
+      .status.ok { background: var(--green-tint); color: var(--ink); }
+      .status.warn { background: var(--amber-tint); color: var(--ink); }
+      .status.err { background: var(--red-tint); color: var(--ink); }
+      .status b { font-weight: 700; }
+      .status .mono { font-variant-numeric: tabular-nums; }
+
+      .char-count { font-size: 0.82rem; color: var(--ink-soft); text-align: right; margin-top: 4px; }
+
+      /* Templates */
+      .templates { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+      .tpl {
+        font: inherit; font-size: 0.88rem; font-weight: 600;
+        padding: 8px 14px; min-height: 38px;
+        border-radius: 999px;
+        border: 1.5px solid var(--line);
+        background: var(--surface-2);
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .tpl:hover { border-color: var(--green); }
+      .tpl.active { background: var(--green); border-color: var(--green); color: #fff; }
+      @media (prefers-color-scheme: dark) { .tpl.active { color: #0c1512; } }
+
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 520px) { .two-col { grid-template-columns: minmax(0,1fr); } }
+
+      /* ---------- Preview ---------- */
+      .preview-card { position: sticky; top: 18px; text-align: center; }
+      @media (max-width: 900px) { .preview-card { position: static; } }
+      .preview-card h2 { justify-content: center; }
+      .sign-preview {
+        border: 1.5px dashed var(--line);
+        border-radius: 12px;
+        padding: 20px 16px 16px;
+        background: var(--surface);
+      }
+      .sign-label {
+        font-family: Georgia, "Iowan Old Style", serif;
+        font-size: 1.25rem; font-weight: 600; line-height: 1.25;
+        margin: 0 0 4px; overflow-wrap: anywhere;
+      }
+      .sign-label:empty { display: none; }
+      .sign-cta { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 14px; }
+      .qr-box {
+        width: min(280px, 100%);
+        aspect-ratio: 1;
+        margin: 0 auto;
+        background: var(--qr-bg);
+        border-radius: 8px;
+        padding: 10px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .qr-box canvas, .qr-box img { width: 100% !important; height: 100% !important; display: block; }
+      .qr-placeholder { color: #5c665f; font-size: 0.92rem; padding: 12px; text-align: center; }
+      .sign-number { margin: 12px 0 0; font-size: 0.9rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+      .link-box { text-align: left; margin-top: 18px; }
+      .link-box .field-label { margin-top: 0; }
+      .link-value {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.82rem;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        overflow-wrap: anywhere;
+        max-height: 110px; overflow-y: auto;
+      }
+      .proof {
+        text-align: left; margin-top: 14px;
+        background: var(--green-tint);
+        border-radius: 10px; padding: 12px 14px; font-size: 0.92rem;
+      }
+      .proof .proof-title { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--green); margin-bottom: 4px; }
+      .proof p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .proof .none { color: var(--ink-soft); font-style: italic; }
+
+      .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+      .btn {
+        font: inherit; font-weight: 600; font-size: 0.95rem;
+        min-height: 46px; padding: 10px 14px;
+        border-radius: 10px; cursor: pointer;
+        border: 1.5px solid var(--green);
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        text-decoration: none; text-align: center;
+      }
+      .btn-primary { background: var(--green); color: #fff; }
+      @media (prefers-color-scheme: dark) { .btn-primary { color: #0c1512; } }
+      .btn-primary:hover { background: var(--green-deep); border-color: var(--green-deep); }
+      .btn-ghost { background: transparent; color: var(--green); }
+      .btn-ghost:hover { background: var(--green-tint); }
+      .btn[disabled], .btn.disabled { opacity: 0.45; pointer-events: none; }
+      .btn-full { grid-column: 1 / -1; }
+      .size-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; text-align: left; }
+      .size-row label { font-size: 0.9rem; font-weight: 600; white-space: nowrap; }
+      .size-row select { min-height: 40px; }
+
+      /* ---------- Below-fold info ---------- */
+      .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 22px; }
+      @media (max-width: 900px) { .info-grid { grid-template-columns: minmax(0,1fr); } }
+      .info-grid .card + .card { margin-top: 0; }
+      @media (max-width: 900px) { .info-grid .card + .card { margin-top: 0; } }
+      .info-grid h3 { margin: 0 0 10px; font-size: 1.02rem; }
+      .info-grid ol, .info-grid ul { margin: 0; padding-left: 20px; color: var(--ink-soft); font-size: 0.93rem; }
+      .info-grid li { margin-bottom: 7px; }
+      .info-grid li strong { color: var(--ink); }
+      .info-grid p { color: var(--ink-soft); font-size: 0.93rem; margin: 0; }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.86em; background: var(--surface-2);
+        padding: 1px 5px; border-radius: 5px; overflow-wrap: anywhere;
+      }
+      footer { margin-top: 30px; color: var(--ink-soft); font-size: 0.87rem; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+
+      <header class="intro">
+        <h1>Make a WhatsApp <span class="accent">QR code</span> anyone can scan</h1>
+        <p>Enter a phone number, optionally add a message that arrives <strong>already typed in</strong> for the person scanning, and download a print-ready QR code. It works for any WhatsApp number — personal or business — no WhatsApp Business app needed. Everything happens on this page; numbers and messages are never uploaded anywhere.</p>
+      </header>
+
+      <div class="layout">
+        <!-- ============ FORM ============ -->
+        <div>
+          <section class="card" aria-labelledby="h-number">
+            <h2 id="h-number"><span class="step">1</span> Phone number</h2>
+            <p class="sub">The number people will chat with. Pick the country, then type the number as you'd normally write it — spaces, dashes and brackets are cleaned up automatically.</p>
+
+            <label class="field-label" for="country">Country</label>
+            <div class="phone-row">
+              <select id="country" aria-label="Country calling code">
+                <option value="1" selected>USA / Canada (+1)</option>
+                <option value="44">United Kingdom (+44)</option>
+                <option value="353">Ireland (+353)</option>
+                <option value="61">Australia (+61)</option>
+                <option value="64">New Zealand (+64)</option>
+                <option value="27">South Africa (+27)</option>
+                <option value="234">Nigeria (+234)</option>
+                <option value="254">Kenya (+254)</option>
+                <option value="233">Ghana (+233)</option>
+                <option value="63">Philippines (+63)</option>
+                <option value="91">India (+91)</option>
+                <option value="55">Brazil (+55)</option>
+                <option value="52">Mexico (+52)</option>
+                <option value="49">Germany (+49)</option>
+                <option value="33">France (+33)</option>
+                <option value="34">Spain (+34)</option>
+                <option value="679">Fiji (+679)</option>
+                <option value="676">Tonga (+676)</option>
+                <option value="685">Samoa (+685)</option>
+              </select>
+              <input type="tel" id="phone" inputmode="tel" autocomplete="tel" placeholder="e.g. (801) 555-0142" aria-label="Phone number" />
+            </div>
+            <p class="hint">Already have the full international number? Paste it starting with <code>+</code> and the country picker is ignored. Don't type a leading 0 — it's dropped for you.</p>
+            <div class="status" id="phoneStatus" role="status"></div>
+          </section>
+
+          <section class="card" aria-labelledby="h-message">
+            <h2 id="h-message"><span class="step">2</span> Pre-filled message <span style="letter-spacing:0;text-transform:none;font-weight:500;color:var(--ink-soft)">(optional)</span></h2>
+            <p class="sub">When someone scans the code, this text is already sitting in their message box — they just tap send. Start from a template and make it your own, or write your own.</p>
+
+            <div class="templates" id="templates" role="group" aria-label="Message templates">
+              <button type="button" class="tpl" data-msg="Hello! I saw your QR code and I'd like to learn more.">General enquiry</button>
+              <button type="button" class="tpl" data-msg="Hello! I'd like to schedule a visit. What times are available this week?">Schedule a visit</button>
+              <button type="button" class="tpl" data-msg="Hello! I'd like details about the upcoming event — time, place, and what to bring.">Event details</button>
+              <button type="button" class="tpl" data-msg="Hello! I'd like to request a copy / learn more about what you offer.">Request a copy / learn more</button>
+              <button type="button" class="tpl" data-msg="Hello! I'm looking for a bit of help and was told you might be able to assist.">Service / help request</button>
+              <button type="button" class="tpl" data-msg="Hello! I'd like information about Sunday services — what time do you meet, and where?">Sunday services</button>
+              <button type="button" class="tpl" data-msg="Hello! I'd like details about the next youth activity and who can come.">Youth activity</button>
+              <button type="button" class="tpl" data-msg="">No message</button>
+            </div>
+
+            <label class="field-label" for="message">Message text</label>
+            <textarea id="message" placeholder="e.g. Hello! I'd like to learn more…" aria-label="Pre-filled message"></textarea>
+            <div class="char-count"><span id="charCount">0</span> characters</div>
+
+            <div class="two-col">
+              <div>
+                <label class="field-label" for="tag">Placement tag <span style="font-weight:400;color:var(--ink-soft)">(optional)</span></label>
+                <input type="text" id="tag" placeholder="e.g. foyer-poster" aria-label="Placement tag" />
+                <p class="hint">Appended to the message like <code>[foyer-poster]</code>, so when a message arrives you know which sign it came from. Make a separate code per location.</p>
+              </div>
+              <div>
+                <label class="field-label" for="label">Sign label <span style="font-weight:400;color:var(--ink-soft)">(optional)</span></label>
+                <input type="text" id="label" placeholder="e.g. Riverton Ward" aria-label="Sign label" />
+                <p class="hint">Printed above the QR code on the downloadable sign — a ward, branch, event or missionary companionship name.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ============ PREVIEW ============ -->
+        <aside class="card preview-card" aria-labelledby="h-preview">
+          <h2 id="h-preview"><span class="step">3</span> Your QR code</h2>
+
+          <div class="sign-preview">
+            <p class="sign-label" id="signLabel"></p>
+            <p class="sign-cta">Scan with your phone camera to chat on WhatsApp</p>
+            <div class="qr-box" id="qrBox">
+              <div class="qr-placeholder" id="qrPlaceholder">Enter a valid phone number<br />and your QR code appears here.</div>
+              <canvas id="qrCanvas" width="260" height="260" style="display:none" aria-label="QR code preview"></canvas>
+            </div>
+            <p class="sign-number" id="signNumber"></p>
+          </div>
+
+          <div class="link-box">
+            <span class="field-label" id="linkLabel">Your wa.me link</span>
+            <div class="link-value" id="linkValue" aria-labelledby="linkLabel">—</div>
+          </div>
+
+          <div class="proof" id="proofBox">
+            <div class="proof-title">What the scanner will see</div>
+            <p id="proofText"><span class="none">No pre-filled message — the chat opens empty.</span></p>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="copyBtn" disabled>Copy wa.me link</button>
+            <a class="btn btn-ghost disabled" id="testBtn" href="#" target="_blank" rel="noopener" aria-disabled="true">Test the link</a>
+            <button type="button" class="btn btn-ghost" id="pngBtn" disabled>Download QR (PNG)</button>
+            <button type="button" class="btn btn-ghost" id="svgBtn" disabled>Download QR (SVG)</button>
+            <button type="button" class="btn btn-primary btn-full" id="signBtn" disabled>Download printable sign (PNG)</button>
+          </div>
+
+          <div class="size-row">
+            <label for="pngSize">PNG size</label>
+            <select id="pngSize">
+              <option value="512">512 px — screen / web</option>
+              <option value="1024" selected>1024 px — flyers &amp; handouts</option>
+              <option value="2048">2048 px — posters &amp; banners</option>
+            </select>
+          </div>
+          <p class="hint" style="text-align:left">Always scan-test the printed proof before a print run — see the printing tips below.</p>
+        </aside>
+      </div>
+
+      <!-- ============ INFO ============ -->
+      <div class="info-grid">
+        <section class="card">
+          <h3>How it works</h3>
+          <ol>
+            <li><strong>Scan</strong> — the person's phone camera reads the code and opens the link.</li>
+            <li><strong>Chat opens</strong> — WhatsApp opens a conversation with your number. No contact needs to be saved first.</li>
+            <li><strong>Message ready</strong> — your pre-filled text is already typed in. They review it and tap send.</li>
+          </ol>
+          <p style="margin-top:10px">Under the hood it's one link: <code>https://wa.me/&lt;number&gt;?text=&lt;message&gt;</code>. The number is digits only, country code first; the message is URL-encoded automatically by this tool.</p>
+        </section>
+
+        <section class="card">
+          <h3>Printing tips</h3>
+          <ul>
+            <li><strong>Size:</strong> at least 2 × 2 cm (about ¾ inch) for handouts; bigger for posters people scan from a distance — roughly 1 cm of QR per 10 cm of scanning distance.</li>
+            <li><strong>Contrast:</strong> black code on white, with the white border (quiet zone) kept intact. Don't invert the colours.</li>
+            <li><strong>Finish:</strong> matte, not glossy — glare defeats phone cameras.</li>
+            <li><strong>One code per purpose:</strong> a different pre-fill or placement tag for the foyer poster, the table card and the website, so replies tell you what worked.</li>
+            <li><strong>Test first:</strong> print one copy, scan it with a different phone, and confirm the right number, profile and message appear.</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h3>Good to know</h3>
+          <ul>
+            <li><strong>Personal vs business:</strong> the code is identical either way — what changes is the profile the scanner lands on. Business accounts add hours, location, a catalogue and greeting messages.</li>
+            <li><strong>Changing your mind:</strong> a printed code always points to the number baked into it. If the number changes, print new codes — old ones can't be redirected.</li>
+            <li><strong>Never share a pairing code:</strong> the QR WhatsApp shows for linking a new device or WhatsApp Web is a different, private code. Never print or post that one.</li>
+            <li><strong>No tracking:</strong> WhatsApp reports no scan counts on wa.me links — the placement tag is the simple way to tell your signs apart.</li>
+          </ul>
+        </section>
+      </div>
+
+      <footer>Made for sharing — use it for wards, branches, events, service projects, or any number people should be able to reach in one scan.</footer>
+    </div>
+
+    <script>
+      (function () {
+        var countryEl = document.getElementById('country');
+        var phoneEl = document.getElementById('phone');
+        var messageEl = document.getElementById('message');
+        var tagEl = document.getElementById('tag');
+        var labelEl = document.getElementById('label');
+        var statusEl = document.getElementById('phoneStatus');
+        var charCountEl = document.getElementById('charCount');
+        var linkValueEl = document.getElementById('linkValue');
+        var proofTextEl = document.getElementById('proofText');
+        var signLabelEl = document.getElementById('signLabel');
+        var signNumberEl = document.getElementById('signNumber');
+        var qrCanvas = document.getElementById('qrCanvas');
+        var qrPlaceholder = document.getElementById('qrPlaceholder');
+        var copyBtn = document.getElementById('copyBtn');
+        var testBtn = document.getElementById('testBtn');
+        var pngBtn = document.getElementById('pngBtn');
+        var svgBtn = document.getElementById('svgBtn');
+        var signBtn = document.getElementById('signBtn');
+        var pngSizeEl = document.getElementById('pngSize');
+        var tplBtns = document.querySelectorAll('.tpl');
+
+        var currentLink = '';
+        var currentDigits = '';
+        var valid = false;
+
+        function digitsOnly(s) { return (s || '').replace(/\D/g, ''); }
+
+        function resolveNumber() {
+          var raw = phoneEl.value || '';
+          var trimmed = raw.replace(/^\s+/, '');
+          var digits = digitsOnly(raw);
+          if (!digits) return { digits: '', state: 'empty' };
+          if (trimmed.charAt(0) === '+' || digits.indexOf('00') === 0) {
+            // Full international number supplied directly.
+            var intl = digits.indexOf('00') === 0 && trimmed.charAt(0) !== '+' ? digits.slice(2) : digits;
+            return { digits: intl, state: 'intl' };
+          }
+          var cc = countryEl.value;
+          var local = digits.replace(/^0+/, '');
+          // If they already typed the country code, don't double it.
+          if (local.indexOf(cc) === 0 && local.length > cc.length + 6) {
+            return { digits: local, state: 'intl' };
+          }
+          return { digits: cc + local, state: 'local', cc: cc };
+        }
+
+        function fullMessage() {
+          var msg = messageEl.value || '';
+          var tag = (tagEl.value || '').trim().toLowerCase().replace(/[^a-z0-9\- ]/g, '').trim().replace(/\s+/g, '-');
+          if (tag) {
+            msg = msg ? msg.replace(/\s+$/, '') + ' [' + tag + ']' : '[' + tag + ']';
+          }
+          return msg;
+        }
+
+        function buildLink(digits, msg) {
+          var link = 'https://wa.me/' + digits;
+          if (msg) link += '?text=' + encodeURIComponent(msg);
+          return link;
+        }
+
+        function setEnabled(on) {
+          [copyBtn, pngBtn, svgBtn, signBtn].forEach(function (b) { b.disabled = !on; });
+          if (on) {
+            testBtn.classList.remove('disabled');
+            testBtn.removeAttribute('aria-disabled');
+          } else {
+            testBtn.classList.add('disabled');
+            testBtn.setAttribute('aria-disabled', 'true');
+            testBtn.removeAttribute('href');
+          }
+        }
+
+        function update() {
+          var res = resolveNumber();
+          var digits = res.digits;
+          currentDigits = digits;
+          var msg = fullMessage();
+
+          charCountEl.textContent = String((messageEl.value || '').length);
+
+          // ---- phone status ----
+          statusEl.className = 'status';
+          statusEl.innerHTML = '';
+          valid = false;
+          if (res.state === 'empty') {
+            // no status shown
+          } else if (digits.length < 7) {
+            statusEl.classList.add('show', 'err');
+            statusEl.innerHTML = '<b>Too short.</b> That\u2019s only ' + digits.length + ' digit' + (digits.length === 1 ? '' : 's') + ' — a full number with country code is usually 10–15 digits. Did you miss part of the number?';
+          } else if (digits.length > 15) {
+            statusEl.classList.add('show', 'err');
+            statusEl.innerHTML = '<b>Too long.</b> Phone numbers can\u2019t exceed 15 digits including the country code — check for a doubled country code or extra digits.';
+          } else if (digits.length < 10) {
+            statusEl.classList.add('show', 'warn');
+            valid = true;
+            statusEl.innerHTML = '<b>Check this number:</b> <span class="mono">+' + digits + '</span> — it\u2019s shorter than most numbers. If the country code is missing, the code won\u2019t reach the right person.';
+          } else {
+            statusEl.classList.add('show', 'ok');
+            valid = true;
+            statusEl.innerHTML = '<b>Looks good:</b> <span class="mono">+' + digits + '</span> — this is the number scanners will chat with.';
+          }
+
+          // ---- label / sign ----
+          signLabelEl.textContent = (labelEl.value || '').trim();
+          signNumberEl.textContent = valid ? 'WhatsApp: +' + digits : '';
+
+          // ---- link, proof, QR ----
+          if (valid) {
+            currentLink = buildLink(digits, msg);
+            linkValueEl.textContent = currentLink;
+            testBtn.setAttribute('href', currentLink);
+            proofTextEl.textContent = msg ? msg : '';
+            if (!msg) proofTextEl.innerHTML = '<span class="none">No pre-filled message — the chat opens empty.</span>';
+            setEnabled(true);
+            renderQR(currentLink);
+          } else {
+            currentLink = '';
+            linkValueEl.textContent = res.state === 'empty' ? '—' : 'Fix the phone number above to build your link.';
+            proofTextEl.innerHTML = '<span class="none">No pre-filled message — the chat opens empty.</span>';
+            if (msg) proofTextEl.textContent = msg;
+            setEnabled(false);
+            qrCanvas.style.display = 'none';
+            qrPlaceholder.style.display = 'block';
+            qrPlaceholder.innerHTML = res.state === 'empty'
+              ? 'Enter a valid phone number<br />and your QR code appears here.'
+              : 'That number doesn\u2019t look complete yet —<br />fix it and the QR code will update.';
+          }
+        }
+
+        // ---- QR model helpers (qrcode-generator library) ----
+        var QRLib = window.qrcode;
+        if (QRLib && QRLib.stringToBytesFuncs && QRLib.stringToBytesFuncs['UTF-8']) {
+          QRLib.stringToBytes = QRLib.stringToBytesFuncs['UTF-8'];
+        }
+        function makeModel(text) {
+          if (!QRLib) return null;
+          try {
+            var qr = QRLib(0, 'M');
+            qr.addData(text, 'Byte');
+            qr.make();
+            return qr;
+          } catch (e) { return null; }
+        }
+        // Draws the code at (x, y) within a square of `size` px, including a
+        // 4-module white quiet zone on every side (required for scanning).
+        function drawModel(ctx, qr, x, y, size) {
+          var n = qr.getModuleCount();
+          var quiet = 4;
+          var total = n + quiet * 2;
+          var cell = size / total;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x, y, size, size);
+          ctx.fillStyle = '#111613';
+          for (var r = 0; r < n; r++) {
+            for (var c = 0; c < n; c++) {
+              if (qr.isDark(r, c)) {
+                ctx.fillRect(x + (c + quiet) * cell, y + (r + quiet) * cell, cell + 0.6, cell + 0.6);
+              }
+            }
+          }
+        }
+
+        var lastRendered = '';
+        function renderQR(link) {
+          if (!QRLib) {
+            qrCanvas.style.display = 'none';
+            qrPlaceholder.style.display = 'block';
+            qrPlaceholder.textContent = 'QR preview unavailable — your link below still works.';
+            return;
+          }
+          if (link === lastRendered && qrCanvas.style.display !== 'none') return;
+          var qr = makeModel(link);
+          if (!qr) {
+            qrCanvas.style.display = 'none';
+            qrPlaceholder.style.display = 'block';
+            qrPlaceholder.textContent = 'That link is too long to fit in a QR code — try shortening the message.';
+            setEnabled(false);
+            return;
+          }
+          lastRendered = link;
+          qrCanvas.width = 520; qrCanvas.height = 520;
+          drawModel(qrCanvas.getContext('2d'), qr, 0, 0, 520);
+          qrPlaceholder.style.display = 'none';
+          qrCanvas.style.display = 'block';
+        }
+
+        function fileSlug() {
+          var base = (labelEl.value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          return base ? 'whatsapp-qr-' + base : 'whatsapp-qr-' + (currentDigits || 'code');
+        }
+
+        function downloadURI(uri, name) {
+          var a = document.createElement('a');
+          a.href = uri; a.download = name;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function downloadPNG() {
+          if (!valid) return;
+          var qr = makeModel(currentLink);
+          if (!qr) return;
+          var size = parseInt(pngSizeEl.value, 10) || 1024;
+          var c = document.createElement('canvas');
+          c.width = size; c.height = size;
+          drawModel(c.getContext('2d'), qr, 0, 0, size);
+          downloadURI(c.toDataURL('image/png'), fileSlug() + '.png');
+        }
+
+        function downloadSVG() {
+          if (!valid) return;
+          var qr = makeModel(currentLink);
+          if (!qr) return;
+          var n = qr.getModuleCount();
+          var quiet = 4;
+          var total = n + quiet * 2;
+          var d = '';
+          for (var r = 0; r < n; r++) {
+            for (var col = 0; col < n; col++) {
+              if (qr.isDark(r, col)) d += 'M' + (col + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
+            }
+          }
+          var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + total + ' ' + total + '"><rect width="100%" height="100%" fill="#ffffff"/><path d="' + d + '" fill="#111613"/></svg>';
+          var blob = new Blob([svg], { type: 'image/svg+xml' });
+          var url = URL.createObjectURL(blob);
+          downloadURI(url, fileSlug() + '.svg');
+          setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        }
+
+        function downloadSign() {
+          if (!valid) return;
+          var qr = makeModel(currentLink);
+          if (!qr) return;
+          var W = 1240, H = 1580;
+          var c = document.createElement('canvas'); c.width = W; c.height = H;
+          var ctx = c.getContext('2d');
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+          ctx.strokeStyle = '#0e7a5f'; ctx.lineWidth = 10;
+          ctx.strokeRect(30, 30, W - 60, H - 60);
+          ctx.fillStyle = '#1c2420'; ctx.textAlign = 'center';
+
+          var label = (labelEl.value || '').trim();
+          var y = 150;
+          if (label) {
+            ctx.font = '600 64px Georgia, "Times New Roman", serif';
+            // wrap label to max 2 lines
+            var words = label.split(/\s+/), lines = [], line = '';
+            words.forEach(function (w) {
+              var t = line ? line + ' ' + w : w;
+              if (ctx.measureText(t).width > W - 220 && line) { lines.push(line); line = w; } else { line = t; }
+            });
+            if (line) lines.push(line);
+            lines.slice(0, 2).forEach(function (l) { ctx.fillText(l, W / 2, y); y += 78; });
+            y += 6;
+          }
+          ctx.font = '400 40px -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+          ctx.fillStyle = '#4c5a52';
+          ctx.fillText('Scan with your phone camera', W / 2, y); y += 56;
+          ctx.fillText('to chat with us on WhatsApp', W / 2, y); y += 40;
+
+          var qrSize = 860;
+          var qrX = (W - qrSize) / 2;
+          drawModel(ctx, qr, qrX, y, qrSize);
+          y += qrSize + 84;
+
+          ctx.fillStyle = '#1c2420';
+          ctx.font = '600 38px -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+          ctx.fillText('WhatsApp: +' + currentDigits, W / 2, y);
+
+          downloadURI(c.toDataURL('image/png'), fileSlug() + '-sign.png');
+        }
+
+        // ---- events ----
+        [countryEl, phoneEl, messageEl, tagEl, labelEl].forEach(function (el) {
+          el.addEventListener('input', update);
+          el.addEventListener('change', update);
+        });
+        tplBtns.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            tplBtns.forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            messageEl.value = btn.getAttribute('data-msg') || '';
+            update();
+            messageEl.focus();
+          });
+        });
+        messageEl.addEventListener('input', function () {
+          tplBtns.forEach(function (b) { b.classList.remove('active'); });
+        });
+        copyBtn.addEventListener('click', function () {
+          if (!currentLink) return;
+          function done() {
+            var old = copyBtn.textContent;
+            copyBtn.textContent = 'Copied ✓';
+            setTimeout(function () { copyBtn.textContent = old; }, 1800);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(currentLink).then(done, function () { fallbackCopy(); done(); });
+          } else { fallbackCopy(); done(); }
+          function fallbackCopy() {
+            var ta = document.createElement('textarea');
+            ta.value = currentLink; document.body.appendChild(ta);
+            ta.select(); try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+          }
+        });
+        pngBtn.addEventListener('click', downloadPNG);
+        svgBtn.addEventListener('click', downloadSVG);
+        signBtn.addEventListener('click', downloadSign);
+
+        update();
+      })();
+    </script>
+  </body>
+</html>
