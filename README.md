@@ -34,4 +34,4 @@ A single static `index.html` — no build step, no backend, no dependencies exce
 
 ## Licence
 
-MIT — see `LICENSE`.
+MIT-0 (MIT No Attribution) — see `LICENSE`. Use, copy and modify it freely; no attribution or credit is required.
